@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>桑黄智能检测系统</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+    <meta name="theme-color" content="#165DFF">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>桑黄智能检测系统</h1>
+            <div class="header-info">
+                <span class="model-version">YOLOv11</span>
+                <span class="model-name">v11_scratch_001</span>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="left-panel">
+                <div class="card">
+                    <div class="card-title">上传图像</div>
+                    <div class="upload-section">
+                        <div class="upload-zone" id="uploadZone">
+                            <div class="upload-icon">📁</div>
+                            <div class="upload-text">点击或拖拽上传图像</div>
+                            <div class="upload-hint">支持 JPG, PNG 格式</div>
+                        </div>
+                        <input type="file" id="fileInput" accept="image/*" style="display: none">
+                        <div class="upload-preview" id="uploadPreview"></div>
+                    </div>
+
+                    <div class="card-title">检测参数</div>
+                    <div class="params-section">
+                        <div class="param-group">
+                            <div class="param-label">
+                                <span>置信度阈值</span>
+                                <span class="param-value" id="confidenceValue">0.30</span>
+                            </div>
+                            <input type="range" id="confidence" min="10" max="100" value="30">
+                        </div>
+                        
+                        <div class="param-group">
+                            <div class="param-label">
+                                <span>图像大小</span>
+                            </div>
+                            <select class="param-select" id="imageSize">
+                                <option value="auto">自动检测</option>
+                                <option value="320">320x320</option>
+                                <option value="416">416x416</option>
+                                <option value="640">640x640</option>
+                            </select>
+                        </div>
+                        
+                        <div class="param-group">
+                            <div class="param-checkbox">
+                                <input type="checkbox" id="useAugmentation" checked>
+                                <label for="useAugmentation">启用数据增强</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="detect-btn" id="detectBtn" disabled>
+                            <span>开始检测</span>
+                        </button>
+                        <button class="export-btn" id="exportBtn" disabled>
+                            <span>导出结果</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">图片尺寸转换</div>
+                    <div class="upload-section">
+                        <div class="upload-zone" id="resizeUploadZone">
+                            <div class="upload-icon">📐</div>
+                            <div class="upload-text">点击或拖拽上传需要转换的图像</div>
+                            <div class="upload-hint">支持 JPG, PNG 格式</div>
+                        </div>
+                        <input type="file" id="resizeFileInput" accept="image/*" style="display: none">
+                        <div class="upload-preview" id="resizePreview"></div>
+                    </div>
+
+                    <div class="params-section">
+                        <div class="param-group">
+                            <div class="param-label">
+                                <span>目标尺寸</span>
+                            </div>
+                            <select class="param-select" id="resizeTargetSize">
+                                <option value="640">640x640 (推荐)</option>
+                                <option value="416">416x416</option>
+                                <option value="320">320x320</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="resize-btn" id="resizeBtn" disabled>
+                            <span>转换尺寸</span>
+                        </button>
+                        <button class="export-btn" id="downloadResizedBtn" disabled>
+                            <span>下载结果</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="stats-grid" id="statsRow">
+                    <div class="stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-value" id="detectionCount">0</div>
+                        <div class="stat-label">检测数量</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⚡</div>
+                        <div class="stat-value" id="detectionTime">0ms</div>
+                        <div class="stat-label">检测时间</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📏</div>
+                        <div class="stat-value" id="imageSizeValue">0x0</div>
+                        <div class="stat-label">图像尺寸</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-value" id="confidenceDisplay">0.30</div>
+                        <div class="stat-label">置信度</div>
+                    </div>
+                </div>
+
+                <div class="image-grid">
+                    <div class="image-box">
+                        <div class="image-box-header">
+                            <span class="image-icon">📷</span>
+                            <span>原始图像</span>
+                        </div>
+                        <div class="image-container" id="originalImage">
+                            <div class="placeholder">
+                                <div class="placeholder-icon">📷</div>
+                                <div class="placeholder-text">等待上传...</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="image-box">
+                        <div class="image-box-header">
+                            <span class="image-icon">🎯</span>
+                            <span>检测结果</span>
+                        </div>
+                        <div class="image-container" id="resultImage">
+                            <div class="placeholder">
+                                <div class="placeholder-icon">🎯</div>
+                                <div class="placeholder-text">等待检测...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detection-info" id="detectionInfo">
+                    <p>检测完成，发现 <span id="foundCount">0</span> 个桑黄</p>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <p>© 2026 桑黄检测系统 | 完全离线运行</p>
+                <p class="footer-info">基于 YOLOv11 深度学习模型</p>
+            </div>
+        </footer>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">模型加载中...</p>
+        <p class="loading-hint">首次加载可能需要几秒钟</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.16.3/dist/ort.min.js"></script>
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker 注册成功:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker 注册失败:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
